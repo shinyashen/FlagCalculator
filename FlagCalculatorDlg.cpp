@@ -18,7 +18,9 @@ using namespace std;
 
 // CFlagCalculatorDlg 对话框
 
-
+int FlagSet[6] = {
+	IDC_CFS, IDC_OFS, IDC_PFS, IDC_AFS, IDC_ZFS, IDC_SFS
+};
 
 CFlagCalculatorDlg::CFlagCalculatorDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_FLAGCALCULATOR_DIALOG, pParent)
@@ -105,17 +107,6 @@ HCURSOR CFlagCalculatorDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-template <typename Dtype>
-unsigned int __builtin_popcount(Dtype u)
-{
-	u = (u & 0x55555555) + ((u >> 1) & 0x55555555);
-	u = (u & 0x33333333) + ((u >> 2) & 0x33333333);
-	u = (u & 0x0F0F0F0F) + ((u >> 4) & 0x0F0F0F0F);
-	u = (u & 0x00FF00FF) + ((u >> 8) & 0x00FF00FF);
-	u = (u & 0x0000FFFF) + ((u >> 16) & 0x0000FFFF);
-	return u;
-}
-
 void CFlagCalculatorDlg::OnBnClickedCal()
 {
 	// 判断8位还是16位计算
@@ -132,7 +123,7 @@ void CFlagCalculatorDlg::OnBnClickedCal()
 	bitset<16> result = bnum1.to_ulong() + bnum2.to_ulong();
 
 	// 计算标志
-	
+
 	int bits = 7;
 	if (isEightBits) {
 		result &= 0xFF;
@@ -144,25 +135,19 @@ void CFlagCalculatorDlg::OnBnClickedCal()
 	}
 	bool CF = (bnum1[bits] && bnum2[bits]) || (!result[bits] && (bnum1[bits] || bnum2[bits]));
 	bool OF = (bnum1[bits] == bnum2[bits]) && (result[bits] != bnum1[bits]);
-	bool PF = __builtin_popcount(result.to_ulong() % 2 == 0);
-	bool AF = ((bnum1.to_ulong() & 0x7) + (bnum2.to_ulong() & 0x7)) > 0x7;
+	bool PF = !(result.count() % 2);
+	bool AF = ((bnum1.to_ulong() & 0xF) + (bnum2.to_ulong() & 0xF)) > 0xF;
 	bool ZF = result.none();
 	bool SF = result[bits];
 
 	// 输出所有内容
+	int FlagDataSet[6] = {CF,OF,PF,AF,ZF,SF};
 	GetDlgItem(IDC_RES)->SetWindowTextW(str); // 输出相加结果
-	str.Format(_T("%d"), CF);
-	GetDlgItem(IDC_CFS)->SetWindowTextW(str);
-	str.Format(_T("%d"), OF);
-	GetDlgItem(IDC_OFS)->SetWindowTextW(str);
-	str.Format(_T("%d"), PF);
-	GetDlgItem(IDC_PFS)->SetWindowTextW(str);
-	str.Format(_T("%d"), AF);
-	GetDlgItem(IDC_AFS)->SetWindowTextW(str);
-	str.Format(_T("%d"), ZF);
-	GetDlgItem(IDC_ZFS)->SetWindowTextW(str);
-	str.Format(_T("%d"), SF);
-	GetDlgItem(IDC_SFS)->SetWindowTextW(str);
+	for (int i = 0; i < 6; i++)
+	{
+		str.Format(_T("%d"), FlagDataSet[i]);
+		GetDlgItem(FlagSet[i])->SetWindowTextW(str);
+	}
 }
 
 void CFlagCalculatorDlg::OnBnClickedExit()
@@ -184,12 +169,8 @@ void CFlagCalculatorDlg::OnBnClickedRadio1()
 		pEdit->Clear();
 		pEdit->SetLimitText(8);
 		SetDlgItemText(IDC_RES, TEXT(""));
-		SetDlgItemText(IDC_CFS, TEXT("/"));
-		SetDlgItemText(IDC_OFS, TEXT("/"));
-		SetDlgItemText(IDC_PFS, TEXT("/"));
-		SetDlgItemText(IDC_AFS, TEXT("/"));
-		SetDlgItemText(IDC_ZFS, TEXT("/"));
-		SetDlgItemText(IDC_SFS, TEXT("/"));
+		for (int i = 0; i < 6; i++)
+			SetDlgItemText(FlagSet[i], TEXT("/"));
 	}
 }
 
@@ -206,11 +187,7 @@ void CFlagCalculatorDlg::OnBnClickedRadio2()
 		pEdit->Clear();
 		pEdit->SetLimitText(16);
 		SetDlgItemText(IDC_RES, TEXT(""));
-		SetDlgItemText(IDC_CFS, TEXT("/"));
-		SetDlgItemText(IDC_OFS, TEXT("/"));
-		SetDlgItemText(IDC_PFS, TEXT("/"));
-		SetDlgItemText(IDC_AFS, TEXT("/"));
-		SetDlgItemText(IDC_ZFS, TEXT("/"));
-		SetDlgItemText(IDC_SFS, TEXT("/"));
+		for (int i = 0; i < 6; i++)
+			SetDlgItemText(FlagSet[i], TEXT("/"));
 	}
 }

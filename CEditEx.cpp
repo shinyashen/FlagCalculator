@@ -47,10 +47,9 @@ void CEditEx::OnPaste()
             char* pszText = static_cast<char*>(GlobalLock(hData));
             if (pszText)
             {
-                CString strClipText(pszText);
+                CString strClipText(pszText), strFiltered;
                 GlobalUnlock(hData);
 
-                CString strFiltered;
                 for (int i = 0; i < strClipText.GetLength(); ++i)
                     // 这里过滤，只允许0和1
                     if (strClipText[i] == '0' || strClipText[i] == '1')
@@ -71,31 +70,17 @@ BOOL CEditEx::PreTranslateMessage(MSG* pMsg)
         UINT nCode = pMsg->wParam;
         if (::GetFocus() == m_hWnd && (GetKeyState(VK_CONTROL) & 0xFF00) == 0xFF00)
         {
-            if (nCode == 'A' || nCode == 'a')
-            {
+            if (nCode == 'A' || nCode == 'a') // 全选
                 this->SetSel(0, -1);
-                return true;
-            } // 全选
-            if (nCode == 'C' || nCode == 'c')
-            {
+            else if (nCode == 'C' || nCode == 'c') // 复制
                 this->Copy();
-                return true;
-            } // 复制
-            if (nCode == 'X' || nCode == 'x')
-            {
+            else if (nCode == 'X' || nCode == 'x') // 剪切
                 this->Cut();
-                return true;
-            } // 剪切
-            if (nCode == 'V' || nCode == 'v')
-            {
+            else if (nCode == 'V' || nCode == 'v') // 粘贴
                 this->Paste();
-                return true;
-            } // 粘贴
-            if (nCode == 'Z' || nCode == 'z')
-            {
+            else if (nCode == 'Z' || nCode == 'z') // 撤销
                 this->Undo();
-                return true;
-            } // 撤销
+            return true;
         }
     }
 	return CEdit::PreTranslateMessage(pMsg);
